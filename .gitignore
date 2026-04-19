@@ -7,3 +7,8 @@ workingdir/**
 __pycache__/
 settings.json
 devfile.txt
+portaudio
+custom_audio.so
+libportaudio.dll
+custom_audio.dll
+custom_audioa.so

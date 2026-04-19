@@ -1,5 +1,12 @@
 import threading
 import sys
+import os
+# Get the path where this script is living
+base_path = os.path.dirname(os.path.abspath(__file__))
+
+# Force Python to look in this folder for other .py files
+if base_path not in sys.path:
+    sys.path.insert(0, base_path)
 import json
 from time import sleep
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphicsView
@@ -13,7 +20,6 @@ import loudness
 import platform
 import extensions
 import traceback
-import os
 
 
 #TODO create some comments for everything
@@ -77,6 +83,9 @@ else:
     darkmode=False
 def update_image():
     global eventdict, eventlist, volume, lastselection, charbase, close
+    print(eventdict)
+    print(eventlist)
+
     #this is for moving the window during transparent mode
     if program.shared.reload_settings:
         program.shared.reload_settings=False
