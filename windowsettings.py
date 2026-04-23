@@ -1,6 +1,4 @@
 import ctypes
-from PyQt5.QtWidgets import QApplication, QMainWindow
-from PyQt5.QtCore import QTimer, Qt
 import platform
 import ctypes
 from ctypes import wintypes

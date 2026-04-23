@@ -1,6 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QComboBox, QPushButton, QVBoxLayout, QWidget, QMessageBox
-from PyQt5.QtCore import QEventLoop
-from PyQt5.QtGui import QIcon
+
 import sys
 import windowsettings
 import os

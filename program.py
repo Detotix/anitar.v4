@@ -1,5 +1,4 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMessageBox
 class shared:
     dntclearcharerror=[{"message":"this program isnt finished yet there could be things that dont work like intented","type":"info"}]
     charerrors=[]
@@ -17,12 +16,7 @@ class char:
         if not {"message": message,"type": type} in shared.charerrors:
             shared.charerrors.append({"message":message,"type":type})
             if type=="error":
-                message_box = QMessageBox()
-                message_box.setWindowTitle("There was an error while loading the character.")
-                message_box.setText(message)
-                message_box.setIcon(QMessageBox.Critical)
-                message_box.setStandardButtons(QMessageBox.Ok)
-                message_box.exec_()
+                print(message, "[ERROR]")
     def charerrorlater(type, message):
          shared.charerroronload.append({"type":type, "message":message})
          shared.dntclearcharerror.append({"type":type, "message":message})

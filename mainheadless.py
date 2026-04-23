@@ -9,13 +9,11 @@ if base_path not in sys.path:
     sys.path.insert(0, base_path)
 import json
 from time import sleep
-from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphicsView
-from PyQt5.QtGui import QPixmap, QIcon, QPalette, QColor
-from PyQt5.QtCore import QTimer, Qt
 import program
-import windowsettings
-import events
 import menus
+import windowsettings
+import shared
+import events
 import loudness
 import platform
 import extensions
@@ -47,10 +45,10 @@ def keyp(event):
     global close
     global window
     #opens escape menu if the escape key is pressed
-    if event.key() == Qt.Key_Escape:
+    if event.key() == "ESC":
         close=menus.settings("","", qtv=True, darkmode=darkmode)
     #opens the charerror menu if F3 key is pressed
-    if event.key() == Qt.Key_F3:
+    if event.key() == "F3":
         menus.charerror(program.shared.charerrors, darkmode=darkmode)
 
 #event update
@@ -115,17 +113,7 @@ def update_image():
                     program.shared.settings["select"]="beispielchar1"
                     open("settings.json", "w").write(json.dumps(program.shared.settings,indent=4))
                     charbase = json.loads(open(f"chars/beispielchar1/charbase.json", "r").read())
-    if "transparent" in program.shared.settings:
-        if QApplication.instance().mouseButtons() & Qt.LeftButton and program.shared.settings["transparent"]:
-                try:
-                    wpos=window.cursor().pos()
-                    window.move(wpos.x(),wpos.y())
-                except:
-                    traceback.print_exc()
-                    wpos=""
-                    winmove=False
-        else:
-            winmove=False
+    winmove=False
     
 
     try:
@@ -137,12 +125,9 @@ def update_image():
         close=events.close
     except:
         pass
-    scene.clear()
     imgs = []
-    window.setWindowTitle("anitar 4 character " + program.shared.selection)
     try:
         backgroundcolor=charbase["backcolor"]
-        window.setStyleSheet(f"background-color: {backgroundcolor};")
     except:
         pass
     try:
@@ -153,10 +138,11 @@ def update_image():
             raise "error"
         else:
             #sets window size to desired value if it is above 300x300 and below 900x900
-            window.setFixedSize(int(size[0]),int(size[1]))
+            shared.windowxsize=int(size[0])
+            shared.windowysize=int(size[1])
     except:
         #sets the window size to 400x400 if nothing is set or something bad happened
-        window.setFixedSize(400,400)
+        shared.windowxsize, shared.windowysize= 400,400
     seimages = []
     if "events" not in charbase or "audio" not in charbase["events"]:
         try:
@@ -177,7 +163,7 @@ def update_image():
                     imgfile = layer["imagefiles"][int(do.split(":")[1])]
                     if imgfile != "nothing":
                         img_path = f'chars/{program.shared.settings["select"]}/{imgfile}'
-                        img = QPixmap(img_path)
+                        img = img_path
                         imgs.append([img, xy])
                     try:
                         seimages.append(charbase["sideevents"][layer["event"]])
@@ -193,7 +179,7 @@ def update_image():
                             imgfile = layer["imagefiles"][int(do.split(":")[1])]
                             if imgfile != "nothing":
                                 img_path = f'chars/{program.shared.settings["select"]}/{imgfile}'
-                                img = QPixmap(img_path)
+                                img = img_path
                                 imgs.append([img, xy])
                             try:
                                 seimages.append(charbase["sideevents"][layer["event"]])
@@ -204,7 +190,7 @@ def update_image():
                         if do.split(":")[0] == "display":
                             imgfile = layer["imagefiles"][int(do.split(":")[1])]
                             img_path = f'chars/{program.shared.settings["select"]}/{imgfile}'
-                            img = QPixmap(img_path)
+                            img = img_path
                             imgs.append([img, xy])
                             try:
                                 seimages.append(charbase["sideevents"][layer["event"]])
@@ -214,40 +200,16 @@ def update_image():
             x = img[1][0]
             y = img[1][1]
             img = img[0]
-            scene.addPixmap(img).setPos(x, y)
+            print("img", x, y)
     except Exception as e:
+        print(e)
         program.char.reload_char()
-    QTimer.singleShot(50, update_image)
 global window
-app = QApplication(sys.argv)
-window = QMainWindow()
-scene = QGraphicsScene()
-view = QGraphicsView(scene)
-view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-#enables transparent mode
-try:
-    if json.loads(open("settings.json").read())["transparent"]:
-        view.setStyleSheet("background: transparent; border: none;")
-        scene.setBackgroundBrush(Qt.transparent)
-        window.setWindowFlags(Qt.FramelessWindowHint)
-        window.setAttribute(Qt.WA_TranslucentBackground, True)
-        program.shared.currenttransparency=True
-    else:
-        view.setStyleSheet("border: none;")
-except:
-    view.setStyleSheet("border: none;")
-window.setAttribute(Qt.WA_NoSystemBackground, True)
-window.keyPressEvent = keyp
-window.setCentralWidget(view)
-window.setWindowIcon(QIcon('app.ico'))
-windowsettings.darkmode(window,darkmode)
-windowsettings.nofullscreen(window)
-window.setFixedSize(400,400)
-update_image()
-window.show()
 t2 = threading.Thread(target=maineventhandler)
 t2.daemon = True
 t2.start()
-sys.exit(app.exec_())
+while True:
+    sleep(0.05)
+    update_image()
+sys.exit()
