@@ -18,27 +18,10 @@ import loudness
 import platform
 import extensions
 import traceback
+global window
 
 
 #TODO create some comments for everything
-
-#creates a working dir
-if not os.path.exists("workingdir"):
-    os.mkdir("workingdir")
-
-# extensions
-global current_extensions
-current_extensions = extensions.loadextensions()
-# extensions END
-
-#class of shared vars
-t1 = threading.Thread(target=loudness.getloudness)
-t1.daemon = True
-t1.start()
-#creates settings.json if it dosnt exist
-if not os.path.exists("settings.json"):
-    with open("settings.json", "w") as createsettings:
-        createsettings.write('{\n"addition": 120,\n"select": "none",\n"selected_audio_device":"default","transparent":false}')
 
 #function for keyinputs
 def keyp(event):
@@ -51,6 +34,11 @@ def keyp(event):
     if event.key() == "F3":
         menus.charerror(program.shared.charerrors, darkmode=darkmode)
 
+#function should be looped 
+def loudnessthread():
+    loudness.getloudness()
+
+#function should be looped
 #event update
 def maineventhandler():
     global eventlist, eventdict, charbase, volume, close
@@ -204,12 +192,31 @@ def update_image():
     except Exception as e:
         print(e)
         program.char.reload_char()
-global window
 
-t2 = threading.Thread(target=maineventhandler)
-t2.daemon = True
-t2.start()
-while True:
-    sleep(0.05)
-    update_image()
-sys.exit()
+if __name__ == "__main__":
+    #creates a working dir
+    if not os.path.exists("workingdir"):
+        os.mkdir("workingdir")
+
+    # extensions
+    global current_extensions
+    current_extensions = extensions.loadextensions()
+    # extensions END
+
+    #class of shared vars
+
+    #creates settings.json if it dosnt exist
+    if not os.path.exists("settings.json"):
+        with open("settings.json", "w") as createsettings:
+            createsettings.write('{\n"addition": 120,\n"select": "none",\n"selected_audio_device":"default","transparent":false}')
+
+    thread_loudness=threading.Thread(target=loudnessthread)
+    thread_loudness.daemon=True
+    thread_loudness.start()
+    thread_maineventhandler=threading.Thread(target=maineventhandler)
+    thread_maineventhandler.daemon=True
+    thread_maineventhandler.start()
+    while True:
+        sleep(0.05)
+        update_image()
+    sys.exit()
