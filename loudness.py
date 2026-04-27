@@ -10,7 +10,6 @@ if os.path.exists("custom_audio.so"):
     lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), lib_name)
 
     if platform.system().lower() == 'windows':
-        # This tells Python to look in the scwipt fowdew for dependencies!
         os.add_dll_directory(os.path.dirname(lib_path))
         
     try:
@@ -19,7 +18,6 @@ if os.path.exists("custom_audio.so"):
         print(f"Owow! Something went wwong: {e}")
     custom_audio = ctypes.CDLL(lib_path)
 
-    # Set up the Weturn types and Awguments for C++ functions
     custom_audio.audio_init.restype = ctypes.c_int
     custom_audio.audio_terminate.restype = None
     custom_audio.get_device_count.restype = ctypes.c_int
@@ -53,7 +51,7 @@ if os.path.exists("custom_audio.so"):
         device_count = custom_audio.get_device_count()
 
         for i in range(device_count):
-            # Fetch data fwom C++ backend
+            # Fetch data
             name = custom_audio.get_device_name(i).decode('utf-8', errors='ignore')
             max_in = custom_audio.get_device_max_input_channels(i)
             host_api = custom_audio.get_device_host_api(i)
@@ -62,7 +60,7 @@ if os.path.exists("custom_audio.so"):
             system_name = platform.system().lower()
             
             if system_name == "windows" or system_name == "linux":
-                # Repwicating original print formatting
+                # Replicating original print formatting
                 device_dict_str = f"{{'name': '{name}', 'maxInputChannels': {max_in}, 'hostApi': {host_api}, 'defaultLowOutputLatency': {latency}}}"
                 print(device_dict_str)
                 
@@ -91,7 +89,7 @@ if os.path.exists("custom_audio.so"):
         global volume
 
         while running:
-            # Check if user sewection changed
+            # Check if user selection changed
             if not current_selected_device == program.audio_devices.selected_device:
                 custom_audio.close_stream(stream_ptr)
                 
@@ -102,16 +100,14 @@ if os.path.exists("custom_audio.so"):
                 dev_idx = -1 if current_selected_device[1] == -1 else current_selected_device[1]
                 stream_ptr = custom_audio.open_stream(dev_idx, sample_rate, chunk_size)
                 
-                # Fallback to default if opening specific device bwoke
                 if not stream_ptr and dev_idx != -1:
                     stream_ptr = custom_audio.open_stream(-1, sample_rate, chunk_size)
 
             if stream_ptr:
-                # Wead diwectly fwom our fast C++ woutine!
                 volume = custom_audio.get_loudness(stream_ptr, chunk_size)
                 volume_event.set()
-
-        # Cweanup
+            yield volume
+        # Cleanup
         if stream_ptr:
             custom_audio.close_stream(stream_ptr)
         custom_audio.audio_terminate()
@@ -121,3 +117,4 @@ else:
         global volume
         while running:
             volume=0
+            yield volume

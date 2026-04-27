@@ -33,29 +33,39 @@ def keyp(event):
     #opens the charerror menu if F3 key is pressed
     if event.key() == "F3":
         menus.charerror(program.shared.charerrors, darkmode=darkmode)
+#function should be looped
+#event update
+def maineventhandler(parts):
+    try:
+        for a, event in enumerate(parts["eventlist"]):
+            if event not in parts["eventdict"]:
+                parts["eventdict"][event] = parts["charbase"]["events"][event]
+        parts["eventlist"], parts["eventdict"] = events.runevents(parts["eventlist"], parts["eventdict"], parts["charbase"], parts["volume"])
+        yield parts
+    except Exception as e:
+        pass
+    
+
+
+#THREADS HERE
 
 #function should be looped 
 def loudnessthread():
-    loudness.getloudness()
-
-#function should be looped
-#event update
-def maineventhandler():
-    global eventlist, eventdict, charbase, volume, close
-    eventlist = []
-    eventdict = {}
-    charbase = {}
-    lastmousepos=-1
+    global volume
+    loudnessgen=loudness.getloudness()
     while True:
-        ee = True
-        sleep(0.02)
-        try:
-            for a, event in enumerate(eventlist):
-                if event not in eventdict:
-                    eventdict[event] = charbase["events"][event]
-            eventlist, eventdict = events.runevents(eventlist, eventdict, charbase, volume)
-        except Exception as e:
-            pass
+        volume = next(loudnessgen)
+def maineventhandlerthread():
+    global eventdict, eventlist, charbase, volume
+    while True:
+        print("ok")
+        shared.threadshare.parts=maineventhandler(shared.threadshare.parts)
+        #unpack parts
+        eventdict=shared.threadshare.parts["eventdict"]
+        eventlist=shared.threadshare.parts["eventlist"]
+        charbase=shared.threadshare.parts["charbase"]
+        
+#THREADS END
 
 global eventdict, eventlist, charbase, lastselection, volume
 eventlist = []
@@ -213,7 +223,7 @@ if __name__ == "__main__":
     thread_loudness=threading.Thread(target=loudnessthread)
     thread_loudness.daemon=True
     thread_loudness.start()
-    thread_maineventhandler=threading.Thread(target=maineventhandler)
+    thread_maineventhandler=threading.Thread(target=maineventhandlerthread)
     thread_maineventhandler.daemon=True
     thread_maineventhandler.start()
     while True:
